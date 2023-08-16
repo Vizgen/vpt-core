@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vpt_core"
-version = "0.0.1"
+version = "0.0.2"
 description = "Core components for the Vizgen Post-processing Tool"
 license = "Apache-2.0"
 authors = ["Vizgen <techsupport@vizgen.com>"]
