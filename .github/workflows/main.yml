@@ -99,11 +99,11 @@ jobs:
       - name: Test with pytest
         run: poetry run pytest tests/ --cov=src/ --cov-report=lcov
 
-      # - name: Upload test coverage for all files
-      #   uses: coverallsapp/github-action@master
-      #   with:
-      #     github-token: ${{ secrets.GITHUB_TOKEN }}
-      #     path-to-lcov: coverage.lcov
+      - name: Upload test coverage for all files
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path-to-lcov: coverage.lcov
 
   deploy:
     needs:

@@ -1,5 +1,5 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Coverage Status](https://coveralls.io/repos/github/Vizgen/vpt-core-internal/badge.svg?branch=develop&t=ZQGpoH)](https://coveralls.io/github/Vizgen/vpt-core-internal?branch=develop)
+[![Coverage Status](https://coveralls.io/repos/github/Vizgen/vpt-core/badge.svg?branch=develop&t=QkgGBn)](https://coveralls.io/github/Vizgen/vpt-core?branch=develop)
 
 # Vizgen Post-processing Tool Core
 
