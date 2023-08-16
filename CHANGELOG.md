@@ -2,6 +2,16 @@
 
 <!--next-version-placeholder-->
 
+## v1.0.0 (2023-08-16)
+
+### Feature
+
+* Initial release ([`744c8a4`](https://github.com/Vizgen/vpt-core/commit/744c8a4e0100e03cd062e102659355f553c24e20))
+
+### Breaking
+
+*  Initial Release of vpt-core ([`744c8a4`](https://github.com/Vizgen/vpt-core/commit/744c8a4e0100e03cd062e102659355f553c24e20))
+
 ## v0.1.1 (2023-08-16)
 
 
