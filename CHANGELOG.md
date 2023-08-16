@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.0 (2023-08-16)
+
+### Breaking
+
+*  ([`3414351`](https://github.com/Vizgen/vpt-core/commit/3414351160c6e49ffc6384dd53c0561d71b159b7))
+
 ## v0.0.2 (2023-08-16)
 
 
