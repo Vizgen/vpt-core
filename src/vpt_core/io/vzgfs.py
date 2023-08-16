@@ -120,7 +120,7 @@ def filesystem_path_split(uri: str) -> Tuple[AbstractFileSystem, str]:
 
 def retrying_attempts():
     return tenacity.Retrying(
-        stop=(stop_after_delay(15) | stop_after_attempt(5)),
+        stop=(stop_after_delay(60) | stop_after_attempt(5)),
         retry=retry_if_exception_type(FSTimeoutError),
         wait=wait_fixed(10),
     )
