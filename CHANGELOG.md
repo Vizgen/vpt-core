@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v0.0.1 (2023-08-16)
+
+### Fix
+
+* Update maximum delay for timeout error ([`10f7c19`](https://github.com/Vizgen/vpt-core/commit/10f7c1966ebc52a7d9ed5abffaa462085647f668))
+
 ## v0.9.0 (2023-06-17)
 
 ### Feature
