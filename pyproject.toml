@@ -70,4 +70,3 @@ upload_to_release = true
 upload_to_pypi = false
 remove_dist = false
 patch_without_tag = true
-major_on_zero = false
