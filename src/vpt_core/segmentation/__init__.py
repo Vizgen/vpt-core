@@ -1,3 +1,8 @@
+import warnings
+
+warnings.filterwarnings("ignore", category=FutureWarning)
+
+
 class ResultFields:
     detection_id_field: str = "ID"
     cell_id_field: str = "EntityID"

@@ -167,38 +167,44 @@ class SegmentationResult(ResultFields):
         self, entities_df: GeoDataFrame, entities_ids: List, cur_poly: MultiPolygon, coverage_threshold: float
     ) -> List[int]:
         res = []
-        geometry_col = self.df.columns.get_loc(self.geometry_field)
+        id_values = entities_df[self.cell_id_field].values
+        geoms = entities_df.geometry.values
         for i in entities_ids:
-            prev_poly = entities_df[entities_df[self.cell_id_field] == i].iloc[0, geometry_col]
+            prev_poly = geoms[id_values == i][0]
             polys_intersection = prev_poly.intersection(cur_poly)
             if (polys_intersection.area / min(prev_poly.area, cur_poly.area)) > coverage_threshold:
                 res.append(i)
         return res
 
-    def _update_entities_index(self, overlaps_pairs: np.ndarray, cur_cells_ids: List, updated_ids: List, z_index: int):
-        cur_df = self.df.loc[self.df[self.z_index_field] == z_index]
+    def _update_entities_index(
+        self, overlaps_pairs: np.ndarray, cur_cells_ids: np.ndarray, cur_df: GeoDataFrame, updated_ids: List
+    ):
+        id_values = cur_df[self.cell_id_field].values
+        index_values = cur_df.index
         for old_id, new_id in updated_ids:
-            for j in cur_df.loc[cur_df[self.cell_id_field] == old_id].index:
+            for j in index_values[np.where(id_values == old_id)]:
                 self.df.at[j, self.cell_id_field] = new_id
                 cur_df.at[j, self.cell_id_field] = new_id
-            for i in [index for index in range(len(cur_cells_ids)) if cur_cells_ids[index] == old_id]:
-                cur_cells_ids[i] = new_id
+            cur_cells_ids[cur_cells_ids == old_id] = new_id
 
             if len(overlaps_pairs) == 0:
                 return
             overlaps_pairs[overlaps_pairs[:, 0] == old_id, 0] = new_id
 
     def fuse_across_z(self, coverage_threshold: float = 0.5):
+        if len(self.df) == 0:
+            return
         z_lines = self.df["ZIndex"].unique()
         reserved_ids = []
-        geometry_col = self.df.columns.get_loc(self.geometry_field)
+        prev_df = self.df.loc[self.df[self.z_index_field] == z_lines[0]]
         for z_i in range(1, len(z_lines)):
-            prev_df = self.df.loc[self.df[self.z_index_field] == z_lines[z_i - 1]]
             prev_df = prev_df.assign(**{self.z_index_field: z_lines[z_i]})
             cur_df = self.df.loc[self.df[self.z_index_field] == z_lines[z_i]]
 
             reserved_ids.extend(prev_df[self.cell_id_field].to_list())
-            cur_cells_ids = cur_df[self.cell_id_field].unique()
+            cell_ids_values = cur_df[self.cell_id_field].values
+            cur_cells_ids = np.unique(cell_ids_values)
+            cur_geoms = cur_df.geometry.values
             overlaps = np.array(self.find_overlapping_entities(prev_df, cur_df))
 
             for i in range(len(cur_cells_ids)):
@@ -206,14 +212,15 @@ class SegmentationResult(ResultFields):
                 cur_intersected_i_to_update = []
                 need_new_index = True
                 if len(overlaps) > 0 and cur_i in overlaps[:, 0]:
-                    cur_poly = cur_df[cur_df[self.cell_id_field] == cur_i].iloc[0, geometry_col]
+                    cur_poly = cur_geoms[cell_ids_values == cur_i][0]
                     prev_ids = [pair[1] for pair in overlaps if pair[0] == cur_i]
 
                     prev_ids = self._assign_entity_index(prev_df, prev_ids, cur_poly, coverage_threshold)
                     if len(prev_ids) > 1:
                         prev_i_to_update = [(prev_i, prev_ids[0]) for prev_i in prev_ids[1:]]
                         for z in z_lines[:z_i]:
-                            self._update_entities_index(np.array([]), [], prev_i_to_update, z)
+                            df_to_update = self.df.loc[self.df[self.z_index_field] == z]
+                            self._update_entities_index(np.array([]), np.array([]), df_to_update, prev_i_to_update)
 
                     if len(prev_ids) > 0:
                         prev_i = prev_ids[0]
@@ -228,19 +235,30 @@ class SegmentationResult(ResultFields):
                     if cur_i in reserved_ids:
                         new_id = max(max(reserved_ids), max(cur_cells_ids)) + 1
                         cur_intersected_i_to_update.append((cur_i, new_id))
-                self._update_entities_index(overlaps, cur_cells_ids, cur_intersected_i_to_update, z_lines[z_i])
-                cur_df = self.df.loc[self.df[self.z_index_field] == z_lines[z_i]]
+                self._update_entities_index(overlaps, cur_cells_ids, cur_df, cur_intersected_i_to_update)
+
+            prev_df = cur_df
 
         self.group_duplicated_entities()
 
     def group_duplicated_entities(self):
-        for z, df in self.df.groupby(self.z_index_field):
-            for entity_id, entity_df in df.groupby(self.cell_id_field):
-                if len(entity_df) == 1:
-                    continue
-                poly = convert_to_multipoly(get_valid_geometry(unary_union(entity_df[self.geometry_field])))
-                self.df.at[entity_df.index[0], self.geometry_field] = poly
-                self.df.drop(entity_df.index[1:], inplace=True)
+        duplicated_fields = [self.z_index_field, self.cell_id_field]
+        duplicated = self.df.duplicated(duplicated_fields, keep=False)
+        if len(duplicated) == 0:
+            return
+
+        grouped = (
+            self.df[duplicated]
+            .groupby(duplicated_fields)[self.geometry_field]
+            .apply(lambda geoms: convert_to_multipoly(get_valid_geometry(unary_union(geoms))))
+        )
+
+        self.df.drop_duplicates(duplicated_fields, inplace=True)
+        merged_geoms = self.df[duplicated].apply(
+            lambda row: grouped[row[self.z_index_field], row[self.cell_id_field]], axis=1
+        )
+        if len(merged_geoms) > 0:
+            self.df[self.geometry_field].update(merged_geoms)
 
     @staticmethod
     def _separate_multi_geometries(data: GeoDataFrame) -> GeoDataFrame:
@@ -314,7 +332,7 @@ class SegmentationResult(ResultFields):
 
         gdf2 = dataframe_2 if dataframe_2 is not None else dataframe_1
 
-        overlaps = dataframe_1.sindex.query_bulk(gdf2.geometry, predicate="intersects").T
+        overlaps = dataframe_1.sindex.query(gdf2.geometry, predicate="intersects").T
 
         # Remove self-intersections
         if dataframe_2 is None:
@@ -350,7 +368,7 @@ class SegmentationResult(ResultFields):
         return self.df.loc[self.df[self.z_index_field] == z_line, self.geometry_field]
 
     @staticmethod
-    def combine_segmentations(segmentations: List):
+    def combine_segmentations(segmentations: List[SegmentationResult]) -> SegmentationResult:
         non_empty_segmentations = [seg for seg in segmentations if len(seg.df) > 0]
         if len(non_empty_segmentations) > 1:
             to_concat = [seg.df for seg in non_empty_segmentations]
@@ -369,8 +387,10 @@ class SegmentationResult(ResultFields):
             res = SegmentationResult(dataframe=df)
             res.set_column(SegmentationResult.detection_id_field, list(range(len(res.df))))
             return res
+        elif len(non_empty_segmentations) == 1:
+            return non_empty_segmentations[0]
         else:
-            return non_empty_segmentations[0] if len(non_empty_segmentations) > 0 else SegmentationResult()
+            return segmentations[0] if len(segmentations) > 0 else SegmentationResult()
 
     def _union_entities(self, base_gdf, add_gdf):
         """

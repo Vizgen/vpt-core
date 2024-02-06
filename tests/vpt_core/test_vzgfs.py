@@ -12,7 +12,7 @@ def random_throw_timeout(*args, **kwargs):
     if "calls" not in random_throw_timeout.__dict__:
         random_throw_timeout.calls = 0
     random_throw_timeout.calls += 1
-    probability = [100, 50, 25, 10, 0]
+    probability = [100, 50, 25, 0]
     if random_throw_timeout.calls + 1 > len(probability):
         return
     if random.uniform(1, 100) < probability[random_throw_timeout.calls - 1]:

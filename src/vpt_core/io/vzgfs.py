@@ -12,7 +12,12 @@ from fsspec.implementations.local import LocalFileSystem
 from gcsfs import GCSFileSystem
 from rasterio.errors import NotGeoreferencedWarning
 from s3fs import S3FileSystem
-from tenacity import stop_after_delay, stop_after_attempt, retry_if_exception_type, wait_fixed
+from tenacity import (
+    stop_after_delay,
+    stop_after_attempt,
+    retry_if_exception_type,
+    wait_fixed,
+)
 
 from vpt_core import (
     AWS_ACCESS_KEY_VAR,
@@ -126,18 +131,18 @@ def retrying_attempts():
     )
 
 
-def vzg_open(uri: str, mode: str):
+def vzg_open(uri: str, mode: str, **kwargs):
     protocol, path = protocol_path_split(uri)
     fs = filesystem_for_protocol(protocol)
 
     assert fs is not None
 
-    return fs.open(path, mode)
+    return fs.open(path, mode, **kwargs)
 
 
-def io_with_retries(uri: str, mode: str, callback: Callable):
+def io_with_retries(uri: str, mode: str, callback: Callable, **kwargs):
     for attempt in retrying_attempts():
-        with attempt, vzg_open(uri, mode) as f:
+        with attempt, vzg_open(uri, mode, **kwargs) as f:
             return callback(f)
 
 

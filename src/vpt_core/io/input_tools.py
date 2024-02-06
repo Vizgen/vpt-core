@@ -1,10 +1,12 @@
 import geopandas as gpd
-from geopandas.geodataframe import DEFAULT_GEO_COLUMN_NAME
 from pyarrow import parquet, Table
 from shapely import wkb
 
 from vpt_core.io.vzgfs import vzg_open, retrying_attempts
 from vpt_core.segmentation.seg_result import SegmentationResult
+
+
+DEFAULT_GEO_COLUMN_NAME = "geometry"
 
 
 def pyarrow_table_to_pandas(table: Table):

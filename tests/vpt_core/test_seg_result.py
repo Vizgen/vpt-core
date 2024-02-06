@@ -138,3 +138,23 @@ def test_3d_splitted_difference() -> None:
     )
 
     assert_seg_equals(s1, gt_seg, 1)
+
+
+def test_combine():
+    empty_df = SegmentationResult.combine_segmentations([])
+    assert all(empty_df.df.columns == SegmentationResult().df.columns)
+    assert len(empty_df.df) == 0
+
+    empty_df_custom_columns = SegmentationResult()
+    empty_df_custom_columns.set_column("custom", None)
+    result = SegmentationResult.combine_segmentations([empty_df_custom_columns])
+    assert all(result.df.columns == empty_df_custom_columns.df.columns)
+    assert len(result.df) == 0
+
+    seg_results = [
+        from_shapes_3d([[Square(30, 30, 30), Square(50, 50, 30)]]),
+        from_shapes_3d([[Square(100, 50, 30)]], cids=[10]),
+    ]
+    result1 = SegmentationResult.combine_segmentations([*seg_results, SegmentationResult()])
+    assert len(result1.df) == 3
+    assert all(seg_results[0].df.columns == result1.df.columns)
