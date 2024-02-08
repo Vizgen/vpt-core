@@ -2,6 +2,12 @@
 
 <!--next-version-placeholder-->
 
+## v1.1.0 (2024-02-08)
+
+### Feature
+
+* Support the Cellpose2 workflow ([#1](https://github.com/Vizgen/vpt-core/issues/1)) ([`4a2d030`](https://github.com/Vizgen/vpt-core/commit/4a2d03010fc85fa932a4ef8be1892e7920c43c17))
+
 ## v1.0.0 (2023-08-16)
 
 ### Feature
