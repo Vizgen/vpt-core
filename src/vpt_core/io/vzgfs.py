@@ -177,3 +177,16 @@ def rasterio_open(uri: str):
 
 def get_rasterio_environment(uri: str, gdal_cache_size: int = 512000000) -> rasterio.Env:
     return rasterio.Env(__get_rasterio_session(uri), GDAL_CACHEMAX=gdal_cache_size)
+
+
+def get_storage_options(uri: str) -> dict:
+    protocol, _ = protocol_path_split(uri)
+
+    if protocol == Protocol.LOCAL:
+        return dict()
+    elif protocol == Protocol.S3:
+        return dict(profile=AWS_PROFILE_NAME, key=AWS_ACCESS_KEY, secret=AWS_SECRET_KEY)
+    elif protocol == Protocol.GCS:
+        return dict(token=GCS_SERVICE_ACCOUNT_KEY)
+
+    raise NotImplementedError()
