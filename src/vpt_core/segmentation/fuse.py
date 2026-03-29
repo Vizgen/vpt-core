@@ -1,5 +1,5 @@
 import warnings
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum
 from typing import Dict, List
 
@@ -18,7 +18,7 @@ class PolygonParams:
 @dataclass
 class SegFusion:
     entity_fusion_strategy: str
-    fused_polygon_postprocessing_parameters: PolygonParams = PolygonParams()
+    fused_polygon_postprocessing_parameters: PolygonParams = field(default_factory=PolygonParams)
 
     def __post_init__(self):
         if isinstance(self.fused_polygon_postprocessing_parameters, dict):

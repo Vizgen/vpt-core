@@ -1,7 +1,11 @@
 import os
 from pathlib import Path
 
+import numpy as np
 import dotenv
+
+if not hasattr(np, "float_"):
+    np.float_ = np.float64
 
 AWS_PROFILE_NAME_VAR = "VPT_AWS_PROFILE"
 AWS_ACCESS_KEY_VAR = "VPT_AWS_ACCESS_KEY_ID"

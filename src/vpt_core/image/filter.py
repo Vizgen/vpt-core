@@ -48,7 +48,7 @@ def filter_iterative(
 
 
 def normalize(image: np.ndarray) -> np.ndarray:
-    return cv2.normalize(image, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+    return cv2.normalize(image, np.empty_like(image), 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
 
 def create_normalization_filter(p: dict) -> Filter:
